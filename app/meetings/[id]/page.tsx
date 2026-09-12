@@ -1,48 +1,90 @@
-import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import MeetingDetail from "@/components/meetingDetail";
 import type { SacramentMeeting } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+export default function MeetingPage() {
+  const params = useParams();
 
-async function getMeeting(
-  id: string
-): Promise<SacramentMeeting | null> {
-  const headerList = await headers();
+  const rawId = params.id;
+  const id = Array.isArray(rawId) ? rawId[0] : rawId;
 
-  const host = headerList.get("host");
-  const protocol = headerList.get("x-forwarded-proto") ?? "http";
+  const [meeting, setMeeting] =
+    useState<SacramentMeeting | null>(null);
 
-  if (!host) {
-    return null;
-  }
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  const response = await fetch(
-    `${protocol}://${host}/api/meetings/${id}`,
-    {
-      cache: "no-store",
+  useEffect(() => {
+    if (!id) {
+      return;
     }
-  );
 
-  if (!response.ok) {
-    return null;
+    async function loadMeeting() {
+      try {
+        const response = await fetch(`/api/meetings/${id}`);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch meeting.");
+        }
+
+        const data: SacramentMeeting = await response.json();
+        setMeeting(data);
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadMeeting();
+  }, [id]);
+
+  if (!id) {
+    return (
+      <div className="mx-auto max-w-5xl px-6 py-12">
+        <h1 className="text-2xl font-bold">
+          Invalid meeting
+        </h1>
+
+        <Link
+          href="/meetings"
+          className="mt-4 inline-block font-medium text-slate-600 hover:text-slate-950"
+        >
+          ← Back to meetings
+        </Link>
+      </div>
+    );
   }
 
-  return response.json();
-}
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-5xl px-6 py-12">
+        <p className="text-slate-600">
+          Loading meeting...
+        </p>
+      </div>
+    );
+  }
 
-export default async function MeetingPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+  if (error || !meeting) {
+    return (
+      <div className="mx-auto max-w-5xl px-6 py-12">
+        <h1 className="text-2xl font-bold">
+          Meeting not found
+        </h1>
 
-  const meeting = await getMeeting(id);
-
-  if (!meeting) {
-    notFound();
+        <Link
+          href="/meetings"
+          className="mt-4 inline-block font-medium text-slate-600 hover:text-slate-950"
+        >
+          ← Back to meetings
+        </Link>
+      </div>
+    );
   }
 
   return (

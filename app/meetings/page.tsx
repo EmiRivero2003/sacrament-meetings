@@ -1,35 +1,52 @@
-import { headers } from "next/headers";
+"use client";
+
+import { useEffect, useState } from "react";
 import MeetingCard from "@/components/meetingCard";
 import type { SacramentMeeting } from "@/lib/types";
 
-export const dynamic = "force-dynamic";
+export default function MeetingsPage() {
+  const [meetings, setMeetings] = useState<SacramentMeeting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-async function getMeetings(): Promise<SacramentMeeting[]> {
-  const headerList = await headers();
+  useEffect(() => {
+    async function loadMeetings() {
+      try {
+        const response = await fetch("/api/meetings");
 
-  const host = headerList.get("host");
-  const protocol = headerList.get("x-forwarded-proto") ?? "http";
+        if (!response.ok) {
+          throw new Error("Failed to fetch meetings.");
+        }
 
-  if (!host) {
-    return [];
-  }
-
-  const response = await fetch(
-    `${protocol}://${host}/api/meetings`,
-    {
-      cache: "no-store",
+        const data: SacramentMeeting[] = await response.json();
+        setMeetings(data);
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
     }
-  );
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch meetings.");
+    loadMeetings();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-5xl px-6 py-12">
+        <p className="text-slate-600">Loading meetings...</p>
+      </div>
+    );
   }
 
-  return response.json();
-}
-
-export default async function MeetingsPage() {
-  const meetings = await getMeetings();
+  if (error) {
+    return (
+      <div className="mx-auto max-w-5xl px-6 py-12">
+        <p className="text-red-600">
+          Unable to load meetings.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
@@ -46,7 +63,10 @@ export default async function MeetingsPage() {
       {meetings.length > 0 ? (
         <div className="space-y-5">
           {meetings.map((meeting) => (
-            <MeetingCard key={meeting.id} meeting={meeting} />
+            <MeetingCard
+              key={meeting.id}
+              meeting={meeting}
+            />
           ))}
         </div>
       ) : (
