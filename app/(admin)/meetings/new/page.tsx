@@ -1,25 +1,22 @@
 
 import Link from "next/link";
+import MeetingForm from "@/components/MeetingForm";
 
 export default function CreateMeetingPage() {
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-3xl font-bold text-slate-900">
-          Create Meeting
-        </h1>
+    <main className="mx-auto max-w-4xl px-6 py-12">
+      <Link
+        href="/meetings"
+        className="text-blue-400 hover:underline"
+      >
+        ← Back to Meetings
+      </Link>
 
-        <p className="mt-4 text-slate-600">
-          Meeting creation functionality is coming in Week 04.
-        </p>
+      <h1 className="mb-8 mt-6 text-3xl font-bold text-white">
+        Create New Meeting
+      </h1>
 
-        <Link
-          href="/meetings"
-          className="mt-6 inline-block rounded-lg bg-slate-900 px-5 py-3 font-medium text-white hover:bg-slate-700"
-        >
-          Back to Meetings
-        </Link>
-      </div>
+      <MeetingForm />
     </main>
   );
 }
