@@ -4,6 +4,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/admin-auth";
 
 import {
   createMeetingRecord,
@@ -229,6 +230,8 @@ export async function createMeeting(
   _prevState: State,
   formData: FormData,
 ): Promise<State> {
+    await requireAdmin();
+
   const validation = validateMeeting(formData);
 
   if (!validation.success) {
@@ -268,6 +271,7 @@ export async function updateMeeting(
   _prevState: State,
   formData: FormData,
 ): Promise<State> {
+    await requireAdmin();
   if (!Number.isSafeInteger(id) || id <= 0) {
     return {
       message: "Invalid meeting ID.",
@@ -324,6 +328,7 @@ export async function updateMeeting(
 export async function deleteMeeting(
   id: number,
 ): Promise<void> {
+    await requireAdmin();
   if (!Number.isSafeInteger(id) || id <= 0) {
     throw new Error("Invalid meeting ID.");
   }

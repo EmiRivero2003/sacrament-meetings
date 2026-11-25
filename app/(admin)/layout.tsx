@@ -1,12 +1,14 @@
-
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { requireAdmin } from "@/lib/admin-auth";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: ReactNode;
 }) {
+  await requireAdmin();
+
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
